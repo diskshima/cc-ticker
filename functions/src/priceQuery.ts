@@ -48,7 +48,7 @@ const symbolsForExchange = async (exchangeName: string): Promise<Array<MarketSym
   return marketList.map(m => m.symbol);
 };
 
-const tickerForSymbol = async(
+export const tickerForSymbol = async (
   exchangeName: string, sym: MarketSymbol
 ): Promise<ccxt.Ticker> => {
   const exchange = exchangeFromName(exchangeName);
