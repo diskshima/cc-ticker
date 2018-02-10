@@ -76,4 +76,4 @@ const main = async (exchangeName: string, sym: MarketSymbol) => {
   // });
 };
 
-main(process.argv[2], process.argv[3]);
+// main(process.argv[2], process.argv[3]);
