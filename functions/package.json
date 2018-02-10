@@ -14,7 +14,6 @@
   "dependencies": {
     "@line/bot-sdk": "^5.2.0",
     "actions-on-google": "^1.8.1",
-    "ccxt": "^1.10.981",
     "firebase-admin": "~5.8.1",
     "firebase-functions": "^0.8.1"
   },
