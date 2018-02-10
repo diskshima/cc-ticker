@@ -36,22 +36,22 @@ const sendResponse = async (text: string, replyToken: string) => {
   }
 };
 
-const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/jpy`;
+const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
 
 const formatBidReply = (exchangeName: Exchange, sym: string, bid: number) =>
-  `${toFullSym(sym).toUpperCase()} (${exchangeName}): ${bid}`;
+  `${toFullSym(sym)} (${exchangeName}): ${bid}`;
 
 const processRequest = async (requestBody) => {
   const words = extractFirstMessage(requestBody).split(/\s+/)
 
   let exchangeName = DEFAULT_EXCHANGE;
-  const sym = words[0].toLowerCase();
+  const sym = words[0].toUpperCase();
 
   if (words.length > 1) {
-    exchangeName = words[1].toLowerCase();
+    exchangeName = words[1];
   }
 
-  const processedSym = toFullSym(sym).toLowerCase();
+  const processedSym = toFullSym(sym);
   const bid = await getBid(exchangeName, processedSym);
   return formatBidReply(exchangeName, sym, bid);
 };

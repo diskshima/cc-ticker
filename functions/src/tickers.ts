@@ -35,7 +35,7 @@ const processBitflyer = generateExchangeProcessor(
 
 const processCoincheck = generateExchangeProcessor(
   (sym: MarketSymbol, callback: QueryCallback) => {
-    if (sym.toLowerCase() !== 'btc/jpy') {
+    if (sym !== 'BTC/JPY') {
       throw new Error(`Coincheck does not support this symbol: ${sym}`);
     }
     https.get('https://coincheck.com/api/ticker', res => callback(res));
@@ -70,11 +70,26 @@ const processDmm = generateExchangeProcessor(
       Object.keys(json.rate)
             .find(key => {
               const marketType = json.rate[key].type;
-              return marketType.toLowerCase().endsWith(sym.toLowerCase());
+              return marketType.toUpperCase().endsWith(sym);
             });
     return parseFloat(json.rate[matchingKeys[0]].bid_value);
   });
 
+const processGmo = generateExchangeProcessor(
+  (sym: MarketSymbol, callback: QueryCallback) => {
+    const pair = sym.replace('/', '_').toLowerCase();
+    https.get('https://coin.z.com/api/v1/master/getCurrentRate.json',
+      res => callback(res));
+  },
+  (data: string, sym: MarketSymbol) => {
+    const indexLookup = ['BTC/JPY', 'ETH/JPY', 'BCH/JPY', 'LTC/JPY', 'XRP/JPY'];
+    const index = indexLookup.indexOf(sym);
+    const productId = 1001 + index;
+
+    const json = JSON.parse(data);
+    const matchingProduct = json.data.find(d => d.productId === productId);
+    return matchingProduct.bid;
+  });
 
 export const getBid = async (exchangeName: string, sym: MarketSymbol) => {
   switch (exchangeName.toLowerCase()) {
@@ -86,9 +101,9 @@ export const getBid = async (exchangeName: string, sym: MarketSymbol) => {
       return await processZaif(sym);
     case 'dmm':
       return await processDmm(sym);
+    case 'gmo':
+      return await processGmo(sym);
     default:
       throw new Error(`Does not support exchange: ${exchangeName}`);
   }
 };
-
-// getBid(process.argv[2], process.argv[3]).then(console.log);
