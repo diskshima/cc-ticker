@@ -1,3 +1,3 @@
-import { getBid } from '../functions/src/tickers';
+import { getBidAsk } from '../functions/src/tickers';
 
-getBid(process.argv[2], process.argv[3]).then(console.log);
+getBidAsk(process.argv[2], process.argv[3]).then(console.log);

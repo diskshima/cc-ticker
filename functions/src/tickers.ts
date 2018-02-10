@@ -3,18 +3,22 @@ import { IncomingMessage } from 'http';
 import * as https from 'https';
 
 export type Exchange = 'bitflyer' | 'zaif' | 'coincheck' | 'dmm';
+export type BidAskPrice = {
+  bid: number,
+  ask: number,
+};
 type MarketSymbol = string;
 type QueryCallback = (res: IncomingMessage) => void;
 
 const generateExchangeProcessor = (
   runQuery: (sym: MarketSymbol, callback: QueryCallback) => void,
-  takeOutBid: (data: string, sym: MarketSymbol) => number,
-): (string) => Promise<number> => {
+  extractBidAsk: (data: string, sym: MarketSymbol) => BidAskPrice,
+): (string) => Promise<BidAskPrice> => {
   return (sym: MarketSymbol) =>
     new Promise((resolve, reject) => {
       runQuery(sym, (res) => {
         res.on('data', (data: string) => {
-          resolve(takeOutBid(data, sym));
+          resolve(extractBidAsk(data, sym));
         }).on('error', (e) => {
           reject(e);
         });
@@ -30,7 +34,10 @@ const processBitflyer = generateExchangeProcessor(
   },
   (data: string) => {
     const json = JSON.parse(data);
-    return json.best_bid;
+    return {
+      ask: json.best_ask,
+      bid: json.best_bid,
+    };
   });
 
 const processCoincheck = generateExchangeProcessor(
@@ -42,18 +49,24 @@ const processCoincheck = generateExchangeProcessor(
   },
   (data: string) => {
     const json = JSON.parse(data);
-    return json.bid;
+    return {
+      ask: json.ask,
+      bid: json.bid,
+    };
   });
 
 const processZaif = generateExchangeProcessor(
   (sym: MarketSymbol, callback: QueryCallback) => {
     const pair = sym.replace('/', '_').toLowerCase();
-    https.get(`https://api.zaif.jp/api/1/last_price/${pair}`,
+    https.get(`https://api.zaif.jp/api/1/ticker/${pair}`,
       res => callback(res));
   },
   (data: string) => {
     const json = JSON.parse(data);
-    return json.last_price;
+    return {
+      ask: json.ask,
+      bid: json.bid,
+    };
   });
 
 const processDmm = generateExchangeProcessor(
@@ -72,12 +85,15 @@ const processDmm = generateExchangeProcessor(
               const marketType = json.rate[key].type;
               return marketType.toUpperCase().endsWith(sym);
             });
-    return parseFloat(json.rate[matchingKeys[0]].bid_value);
+    const matchingRate = json.rate[matchingKeys[0]];
+    return {
+      ask: parseFloat(matchingRate.ask_value),
+      bid: parseFloat(matchingRate.bid_value),
+    };
   });
 
 const processGmo = generateExchangeProcessor(
   (sym: MarketSymbol, callback: QueryCallback) => {
-    const pair = sym.replace('/', '_').toLowerCase();
     https.get('https://coin.z.com/api/v1/master/getCurrentRate.json',
       res => callback(res));
   },
@@ -88,10 +104,15 @@ const processGmo = generateExchangeProcessor(
 
     const json = JSON.parse(data);
     const matchingProduct = json.data.find(d => d.productId === productId);
-    return matchingProduct.bid;
+    return {
+      ask: matchingProduct.ask,
+      bid: matchingProduct.bid,
+    };
   });
 
-export const getBid = async (exchangeName: string, sym: MarketSymbol) => {
+export const getBidAsk = async (
+  exchangeName: string, sym: MarketSymbol
+): Promise<BidAskPrice> => {
   switch (exchangeName.toLowerCase()) {
     case 'bitflyer':
       return await processBitflyer(sym);

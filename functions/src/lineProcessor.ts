@@ -1,6 +1,6 @@
 import { config } from 'firebase-functions';
 import { Client, validateSignature } from '@line/bot-sdk';
-import { getBid, Exchange } from './tickers';
+import { getBidAsk, BidAskPrice, Exchange } from './tickers';
 
 export const LINE_HEADER_NAME = 'x-line-signature';
 
@@ -38,8 +38,11 @@ const sendResponse = async (text: string, replyToken: string) => {
 
 const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
 
-const formatBidReply = (exchangeName: Exchange, sym: string, bid: number) =>
-  `${toFullSym(sym)} (${exchangeName}): ${bid.toLocaleString()}`;
+const formatBidAskReply = (
+  exchangeName: Exchange, sym: string, bidAsk: BidAskPrice,
+) =>
+  `${toFullSym(sym)} (${exchangeName}): ` +
+  `Bid ${bidAsk.bid.toLocaleString()} / Ask ${bidAsk.ask.toLocaleString()}`;
 
 const processRequest = async (requestBody) => {
   const words = extractFirstMessage(requestBody).split(/\s+/)
@@ -52,8 +55,8 @@ const processRequest = async (requestBody) => {
   }
 
   const processedSym = toFullSym(sym);
-  const bid = await getBid(exchangeName, processedSym);
-  return formatBidReply(exchangeName, sym, bid);
+  const bidAsk = await getBidAsk(exchangeName, processedSym);
+  return formatBidAskReply(exchangeName, sym, bidAsk);
 };
 
 export const handleLineRequest = async (request, response) => {
