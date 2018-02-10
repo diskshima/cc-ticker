@@ -39,7 +39,7 @@ const sendResponse = async (text: string, replyToken: string) => {
 const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
 
 const formatBidReply = (exchangeName: Exchange, sym: string, bid: number) =>
-  `${toFullSym(sym)} (${exchangeName}): ${bid}`;
+  `${toFullSym(sym)} (${exchangeName}): ${bid.toLocaleString()}`;
 
 const processRequest = async (requestBody) => {
   const words = extractFirstMessage(requestBody).split(/\s+/)
