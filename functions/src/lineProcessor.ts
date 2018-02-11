@@ -1,6 +1,6 @@
 import { config } from 'firebase-functions';
 import { Client, validateSignature } from '@line/bot-sdk';
-import { getBidAsk, BidAskPrice, Exchange } from './tickers';
+import { getBidAsk, BidAskPrice, Exchange, toFullSym } from './tickers';
 
 export const LINE_HEADER_NAME = 'x-line-signature';
 
@@ -36,8 +36,6 @@ const sendResponse = async (text: string, replyToken: string) => {
   }
 };
 
-const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
-
 const formatBidAskReply = (
   exchangeName: Exchange, sym: string, bidAsk: BidAskPrice,
 ) =>
@@ -47,14 +45,15 @@ const formatBidAskReply = (
 const processRequest = async (requestBody) => {
   const words = extractFirstMessage(requestBody).split(/\s+/)
 
-  let exchangeName = DEFAULT_EXCHANGE;
   const sym = words[0].toUpperCase();
+  const processedSym = toFullSym(sym);
+
+  let exchangeName = DEFAULT_EXCHANGE;
 
   if (words.length > 1) {
-    exchangeName = words[1];
+    exchangeName = words[1].toLowerCase();
   }
 
-  const processedSym = toFullSym(sym);
   const bidAsk = await getBidAsk(exchangeName, processedSym);
   return formatBidAskReply(exchangeName, sym, bidAsk);
 };

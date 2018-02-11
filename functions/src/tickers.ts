@@ -2,13 +2,15 @@ import * as url from 'url';
 import { IncomingMessage } from 'http';
 import * as https from 'https';
 
-export type Exchange = 'bitflyer' | 'zaif' | 'coincheck' | 'dmm';
+export type Exchange = 'bitflyer' | 'zaif' | 'coincheck' | 'dmm' | 'gmo';
 export type BidAskPrice = {
   bid: number,
   ask: number,
 };
 type MarketSymbol = string;
 type QueryCallback = (res: IncomingMessage) => void;
+
+export const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
 
 const generateExchangeProcessor = (
   runQuery: (sym: MarketSymbol, callback: QueryCallback) => void,
@@ -111,9 +113,9 @@ const processGmo = generateExchangeProcessor(
   });
 
 export const getBidAsk = async (
-  exchangeName: string, sym: MarketSymbol
+  exchangeName: Exchange, sym: MarketSymbol
 ): Promise<BidAskPrice> => {
-  switch (exchangeName.toLowerCase()) {
+  switch (exchangeName) {
     case 'bitflyer':
       return await processBitflyer(sym);
     case 'coincheck':
