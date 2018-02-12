@@ -1,13 +1,12 @@
 import * as url from 'url';
 import { IncomingMessage } from 'http';
 import * as https from 'https';
+import { Exchange, MarketSymbol } from './types';
 
-export type Exchange = 'bitflyer' | 'zaif' | 'coincheck' | 'dmm' | 'gmo';
 export type BidAskPrice = {
   bid: number,
   ask: number,
 };
-type MarketSymbol = string;
 type QueryCallback = (res: IncomingMessage) => void;
 
 export const toFullSym = (sym: string) => sym.includes('/') ? sym : `${sym}/JPY`;
@@ -19,7 +18,10 @@ const generateExchangeProcessor = (
   return (sym: MarketSymbol) =>
     new Promise((resolve, reject) => {
       runQuery(sym, (res) => {
-        res.on('data', (data: string) => {
+        let data = '';
+        res.on('data', (chunk: string) => {
+          data += chunk;
+        }).on('end', () => {
           resolve(extractBidAsk(data, sym));
         }).on('error', (e) => {
           reject(e);
@@ -117,15 +119,15 @@ export const getBidAsk = async (
 ): Promise<BidAskPrice> => {
   switch (exchangeName) {
     case 'bitflyer':
-      return await processBitflyer(sym);
+      return processBitflyer(sym);
     case 'coincheck':
-      return await processCoincheck(sym);
+      return processCoincheck(sym);
     case 'zaif':
-      return await processZaif(sym);
+      return processZaif(sym);
     case 'dmm':
-      return await processDmm(sym);
+      return processDmm(sym);
     case 'gmo':
-      return await processGmo(sym);
+      return processGmo(sym);
     default:
       throw new Error(`Does not support exchange: ${exchangeName}`);
   }

@@ -1,6 +1,7 @@
 import { config } from 'firebase-functions';
 import { Client, validateSignature } from '@line/bot-sdk';
-import { getBidAsk, BidAskPrice, Exchange, toFullSym } from './tickers';
+import { Exchange } from './types';
+import { getBidAsk, BidAskPrice, toFullSym } from './tickers';
 
 export const LINE_HEADER_NAME = 'x-line-signature';
 
