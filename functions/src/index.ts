@@ -11,6 +11,6 @@ export const quote = functions.https.onRequest(async (request, response) => {
   if (hasLineHeader(request)) {
     await handleLineRequest(request, response);
   } else {
-    await handleDialogFlowRequest(request, response);
+    handleDialogFlowRequest(request, response);
   }
 });
