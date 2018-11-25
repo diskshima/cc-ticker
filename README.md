@@ -4,17 +4,19 @@
 
 1. Install command line tools necessary for development.
     ```bash
-    npm install -g firebase yarn ts-node
+    npm install -g firebase-tools ts-node
     ```
 1. Install Node modules
     ```bash
-    yarn
+    cd functions
+    npm install
     ```
 
 ## Deploying
 
 ```bash
-firebase deploy --only functions
+cd functions
+npm run deploy
 ```
 
 ## Running
