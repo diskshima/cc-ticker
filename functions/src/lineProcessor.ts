@@ -1,10 +1,10 @@
-import { config } from 'firebase-functions';
+import * as functions from 'firebase-functions';
 import { Client, validateSignature } from '@line/bot-sdk';
 import { getBidAsk, BidAskPrice, Exchange, toFullSym } from './tickers';
 
 export const LINE_HEADER_NAME = 'x-line-signature';
 
-const LINE_CONFIG = config().line;
+const LINE_CONFIG = functions.config().line;
 const CHANNEL_SECRET = LINE_CONFIG.channel_secret;
 const CHANNEL_ACCESS_TOKEN = LINE_CONFIG.channel_access_token;
 
